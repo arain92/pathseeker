@@ -1,0 +1,6 @@
+import { Component, inject, signal } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+import { PreferencesControl } from '../../shared/preferences/preferences-control';
+import { AuthService } from '../../core/auth/auth.service';
+@Component({selector:'app-public-shell',imports:[RouterLink,PreferencesControl],templateUrl:'./public-shell.html',styleUrl:'./public-shell.scss'})
+export class PublicShell { protected readonly auth=inject(AuthService);private readonly router=inject(Router);protected readonly open=signal(false);protected readonly accountOpen=signal(false);constructor(){if(localStorage.getItem('pathseeker_token')&&!this.auth.user()){this.auth.restore().subscribe({error:()=>localStorage.removeItem('pathseeker_token')});}}protected destination():string{return this.auth.user()?.role==='admin'?'/admin':'/app';}protected profileDestination():string{return this.auth.user()?.role==='admin'?'/admin/profile':'/app/profile';}protected logout():void{this.auth.logout().subscribe({next:()=>void this.router.navigateByUrl('/'),error:()=>{localStorage.removeItem('pathseeker_token');void this.router.navigateByUrl('/');}});}protected toggle():void{this.open.update(v=>!v);} }

@@ -1,0 +1,8 @@
+import { Component, inject, signal } from '@angular/core';
+import { DatePipe } from '@angular/common';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { finalize, forkJoin } from 'rxjs';
+import { QuizAttempt } from '../../core/quiz/quiz.models';
+import { QuizService } from '../../core/quiz/quiz.service';
+@Component({selector:'app-quiz-result',imports:[RouterLink,DatePipe],templateUrl:'./quiz-result.html',styleUrl:'./quiz-result.scss'})
+export class QuizResultReport{private readonly service=inject(QuizService);private readonly route=inject(ActivatedRoute);protected readonly attempt=signal<QuizAttempt|null>(null);protected readonly history=signal<QuizAttempt[]>([]);protected readonly loading=signal(true);protected readonly error=signal('');constructor(){const id=Number(this.route.snapshot.paramMap.get('id'));forkJoin({attempt:this.service.result(id),history:this.service.history()}).pipe(finalize(()=>this.loading.set(false))).subscribe({next:data=>{this.attempt.set(data.attempt);this.history.set(data.history.data.filter(item=>item.id!==id));},error:()=>this.error.set('This assessment report could not be loaded.')});}protected dimensions():[string,number][]{return Object.entries(this.attempt()?.result?.dimension_scores??{}).sort((a,b)=>b[1]-a[1]);}protected priorScore(prior:QuizAttempt,key:string):number{return prior.result?.dimension_scores?.[key]??0;}protected delta(prior:QuizAttempt,key:string,current:number):string{const difference=Math.round((current-this.priorScore(prior,key))*100);return `${difference>=0?'+':''}${difference}%`;}protected label(value:string):string{return value.replaceAll('_',' ').replace(/\b\w/g,letter=>letter.toUpperCase());}}

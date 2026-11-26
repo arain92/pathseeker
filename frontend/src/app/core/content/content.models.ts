@@ -1,0 +1,6 @@
+export interface Tag{id:number;name:string;slug:string}
+export interface LibraryResource{id:number;title:string;slug:string;description:string;type:string;audience:string;category:string;file_url:string;download_count:number;thumbnail_url?:string|null;tags:Tag[]}
+export interface MediaItem{id:number;title:string;slug:string;description:string;type:string;source_url:string;transcript:string|null;category:string;duration_seconds:number|null;view_count:number;ratings_avg_rating:number|null;ratings_count:number;thumbnail_url?:string|null;tags:Tag[];careers?:{id:number;title:string;slug:string;domain:{name:string}}[];related?:{id:number;title:string;slug:string;type:string;category:string}[]}
+export interface Story{id:number;person_name:string;slug:string;career_title:string;domain:string;summary:string;timeline:string[];advice:string;status:'pending'|'approved'|'rejected';moderation_notes?:string|null;published_at:string|null;thumbnail_url?:string|null;submitter?:{id:number;name:string;email:string}}
+export type StoryInput=Pick<Story,'person_name'|'career_title'|'domain'|'summary'|'timeline'|'advice'>;
+export interface ContentPage<T>{success:boolean;message:string;data:T[];meta:{current_page:number;last_page:number;total:number}}

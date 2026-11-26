@@ -1,0 +1,21 @@
+import { Component, DestroyRef, inject, signal } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, catchError, debounceTime, distinctUntilChanged, finalize, map, merge, of, startWith, switchMap } from 'rxjs';
+import { Career, CareerFilterOptions, Domain } from '../../core/careers/career.models';
+import { CareerService } from '../../core/careers/career.service';
+
+@Component({selector:'app-career-bank',imports:[ReactiveFormsModule,RouterLink],templateUrl:'./career-bank.html',styleUrl:'./career-bank.scss'})
+export class CareerBank{
+  private readonly service=inject(CareerService);private readonly destroy=inject(DestroyRef);private readonly reload=new Subject<void>();
+  protected readonly search=new FormControl('',{nonNullable:true});protected readonly domain=signal('');protected readonly demand=signal('');protected readonly skill=signal('');protected readonly education=signal('');protected readonly experience=signal('');protected readonly salaryMin=signal('');protected readonly salaryMax=signal('');protected readonly sort=signal('title');protected readonly page=signal(1);protected readonly careers=signal<Career[]>([]);protected readonly domains=signal<Domain[]>([]);protected readonly options=signal<CareerFilterOptions>({skills:[],education_levels:[],experience_levels:[]});protected readonly total=signal(0);protected readonly lastPage=signal(1);protected readonly loading=signal(true);protected readonly error=signal('');protected readonly compared=signal<string[]>(JSON.parse(localStorage.getItem('pathseeker_compare')??'[]') as string[]);
+  constructor(){this.restoreFilters();this.service.domains().subscribe({next:data=>this.domains.set(data),error:()=>this.error.set('Career domains could not be loaded.')});this.service.options().subscribe({next:data=>this.options.set(data),error:()=>this.error.set('Career filter options could not be loaded.')});merge(this.search.valueChanges.pipe(startWith(''),debounceTime(280),distinctUntilChanged()),this.reload.pipe(map(()=>this.search.value))).pipe(switchMap(search=>this.fetch(search)),takeUntilDestroyed(this.destroy)).subscribe(result=>{if(result){this.careers.set(result.data);this.total.set(result.meta.total);this.lastPage.set(result.meta.last_page);}});}
+  protected refresh():void{this.page.set(1);this.reload.next();}
+  protected clearFilters():void{this.domain.set('');this.demand.set('');this.skill.set('');this.education.set('');this.experience.set('');this.salaryMin.set('');this.salaryMax.set('');localStorage.removeItem('pathseeker_career_filters');this.refresh();}
+  protected saveFilters():void{localStorage.setItem('pathseeker_career_filters',JSON.stringify({domain:this.domain(),demand:this.demand(),skill:this.skill(),education:this.education(),experience:this.experience(),salaryMin:this.salaryMin(),salaryMax:this.salaryMax()}));this.refresh();}
+  protected go(page:number):void{if(page<1||page>this.lastPage())return;this.page.set(page);this.reload.next();}
+  protected toggleCompare(slug:string):void{this.compared.update(items=>{const next=items.includes(slug)?items.filter(item=>item!==slug):items.length<3?[...items,slug]:items;localStorage.setItem('pathseeker_compare',JSON.stringify(next));return next;});}
+  private restoreFilters():void{try{const saved=JSON.parse(localStorage.getItem('pathseeker_career_filters')??'{}');this.domain.set(saved.domain??'');this.demand.set(saved.demand??'');this.skill.set(saved.skill??'');this.education.set(saved.education??'');this.experience.set(saved.experience??'');this.salaryMin.set(saved.salaryMin??'');this.salaryMax.set(saved.salaryMax??'');}catch{localStorage.removeItem('pathseeker_career_filters');}}
+  private fetch(search:string){this.loading.set(true);this.error.set('');return this.service.list({search,domain:this.domain(),demand:this.demand(),skill:this.skill(),education_level:this.education(),experience_level:this.experience(),salary_min:this.salaryMin(),salary_max:this.salaryMax(),sort:this.sort(),page:this.page(),per_page:12}).pipe(catchError(()=>{this.error.set('We could not load careers. Check that the PathSeeker API is running.');return of(null);}),finalize(()=>this.loading.set(false)));}
+}

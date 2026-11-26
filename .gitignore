@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Build output and caches
+dist/
+.angular/
+coverage/
+tmp/
+*.log
+.phpunit.result.cache
+
+# Local environments and secrets
+.env
+.env.*
+!.env.example
+!.env.production.example
+
+# Laravel runtime files
+backend/public/storage
+backend/public/build/
+backend/bootstrap/cache/*.php
+backend/storage/logs/*
+!backend/storage/logs/.gitignore
+
+# Editors and operating systems
+.idea/
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db

@@ -1,0 +1,6 @@
+import { Component, inject } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import { PublicShell } from '../../layout/public-shell/public-shell';
+
+@Component({selector:'app-error-page',imports:[PublicShell,RouterLink],template:`<app-public-shell><main id="main-content" class="container error-page"><p class="code">{{route.snapshot.data['code'] ?? 404}}</p><p class="eyebrow">Route unavailable</p><h1>{{route.snapshot.data['heading'] ?? 'This path doesn’t exist.'}}</h1><p>{{route.snapshot.data['copy'] ?? 'The page may have moved, or the address may be incomplete.'}}</p><div><a class="button button--primary" routerLink="/">Return home</a><a class="button" routerLink="/careers">Explore careers</a></div></main></app-public-shell>`,styles:[`.error-page{min-height:70vh;display:flex;flex-direction:column;justify-content:center;padding-block:5rem}.code{margin:0;color:var(--border);font-size:clamp(6rem,20vw,13rem);font-weight:900;line-height:.7;letter-spacing:-.08em}.error-page h1{max-width:700px;margin:.5rem 0;font-size:clamp(2.5rem,7vw,5.5rem);line-height:1;letter-spacing:-.055em}.error-page>p:not(.code,.eyebrow){max-width:600px;color:var(--text-secondary)}.error-page div{display:flex;flex-wrap:wrap;gap:.75rem;margin-top:1.5rem}`]})
+export class ErrorPage { protected readonly route = inject(ActivatedRoute); }
